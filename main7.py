@@ -3,7 +3,10 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.cluster import KMeans
 from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error, r2_score
 import numpy as np
+from pprint import pprint
+
 
 # ===================== STEP 1: DATA PREPARATION =====================
 # Read the dataset from Excel
@@ -39,7 +42,16 @@ X = df_monthly[['Month_Num']]
 y = df_monthly['TotalSales']
 model = LinearRegression()
 model.fit(X, y)
-next_month_pred = model.predict([[len(df_monthly)]])[0]
+
+# Predict sales of the current months (predicted on the current data set)
+df_monthly['PredictedSales'] = model.predict(X)
+
+# Calculate the model evaluation index
+mse = mean_squared_error(y, df_monthly['PredictedSales'])
+r2 = r2_score(y, df_monthly['PredictedSales'])
+
+# Predict the next month revenue
+next_month_pred = float(model.predict([[len(df_monthly)]])[0])
 
 # Customer segmentation (clustering) based on purchase behavior
 customer_summary = df.groupby('CustomerName').agg({'TotalSales': 'sum', 'OrderID': 'count'}).reset_index()
@@ -82,7 +94,9 @@ results = {
     "Total Revenue": total_revenue,
     "Top Customers": top_customers,
     "Predicted Next Month Sales": next_month_pred,
+    "Model MSE": mse,
+    "Model R2 Score": r2,
     "Business Recommendations": recommendations
 }
 
-print(results)
+pprint(results)
